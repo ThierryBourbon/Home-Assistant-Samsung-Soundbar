@@ -48,8 +48,9 @@ class SoundbarApi:
 #        try:
         with self._opener as session:
             async with await session.post (api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
+                pass
         with self._opener as session:
-            async with await session.get (api_device_status, headers=request_headers) as resp:
+            async with await session.get (api_device_status, headers=request_headers) as resp
 
 #        except requests.exceptions.RequestException as e:
             #            self._state = STATE_IDLE
@@ -197,8 +198,9 @@ class SoundbarApiSwitch:
         api_full = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
 #        try:
-        with self._opener as session:
-            async with await session.post (api_command, data=api_full, headers=request_headers) as resp:
+        
+        resp = await self.opener.post (api_command, data=api_full, headers=request_headers)
+   
         with self._opener as session:
             async with await session.get (api_device_status, headers=request_headers) as resp:
 
