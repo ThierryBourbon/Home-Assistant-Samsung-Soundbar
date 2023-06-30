@@ -50,7 +50,7 @@ class SoundbarApi:
             async with await session.post (api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
                 pass
         with self._opener as session:
-            async with await session.get (api_device_status, headers=request_headers) as resp
+            async with await session.get (api_device_status, headers=request_headers) as resp:
 
 #        except requests.exceptions.RequestException as e:
             #            self._state = STATE_IDLE
