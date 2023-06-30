@@ -99,37 +99,37 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
     ################################## Commandes ###############################
     ### arg , cmdtype
 
-    def turn_off(self):
-        SoundbarApi.async_send_command(self, "", "switch_off")
+    async def async_turn_off(self) -> None:
+        await SoundbarApi.async_send_command(self, "", "switch_off")
 
-    def turn_on(self):
-        SoundbarApi.async_send_command(self, "", "switch_on")
+    async def async_ turn_on(self) -> None:
+        await SoundbarApi.async_send_command(self, "", "switch_on")
 
-    def set_volume_level(self, volume_level: float):
+    async def async_ set_volume_level(self, volume_level: float) -> None:
         cmdtype = "setvolume"
-        SoundbarApi.async_send_command(self, volume_level, cmdtype)
+        await SoundbarApi.async_send_command(self, volume_level, cmdtype)
 
-    def mute_volume(self, mute: bool):
+    async def async_ mute_volume(self, mute: bool) -> None:
         cmdtype = "audiomute"
-        SoundbarApi.async_send_command(self, mute, cmdtype)
+        await SoundbarApi.async_send_command(self, mute, cmdtype)
 
-    def volume_up(self):
-        SoundbarApi.async_send_command(self, "up", "stepvolume")
+    async def async_ volume_up(self) -> None:
+        await SoundbarApi.async_send_command(self, "up", "stepvolume")
 
-    def volume_down(self):
-        SoundbarApi.async_send_command(self, "down", "stepvolume")
+    async def  async_volume_down(self) -> None:
+        await SoundbarApi.async_send_command(self, "down", "stepvolume")
 
-    def select_source(self, source: str):
-        SoundbarApi.async_send_command(self, source, "selectsource")
+    async def async_ select_source(self, source: str) -> None:
+        await SoundbarApi.async_send_command(self, source, "selectsource")
 
-    def select_sound_mode(self, sound_mode: str):
-        SoundbarApi.async_send_command(self, sound_mode, "selectsoundmode")
+    async def async_ select_sound_mode(self, sound_mode: str) -> None:
+        await SoundbarApi.async_send_command(self, sound_mode, "selectsoundmode")
 
-    def media_play(self):
-        SoundbarApi.async_send_command(self, "", "play")
+    async def async_ media_play(self) -> None:
+        await SoundbarApi.async_send_command(self, "", "play")
 
-    def media_pause(self):
-        SoundbarApi.async_send_command(self, "", "pause")
+    async def async_ media_pause(self) -> None:
+        await SoundbarApi.async_send_command(self, "", "pause")
 
     ################################## Attributs ###############################
 
