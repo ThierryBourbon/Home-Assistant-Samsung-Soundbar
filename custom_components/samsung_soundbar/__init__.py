@@ -1,6 +1,9 @@
 """samsung Soundbar"""
 import logging
 import voluptuous as vol
+import aiohttp
+import asyncio
+
 
 # VERSION
 VERSION = '2.1'
