@@ -86,7 +86,7 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
-        self._opener = SoundbarSwitchEntity.get_opener
+        self._opener = SoundbarMediaPlayerEntity.get_opener
 
     # Run when added to HASS TO LOAD SOURCES
     async def async_added_to_hass(self):
