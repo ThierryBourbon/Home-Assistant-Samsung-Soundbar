@@ -48,8 +48,6 @@ class SoundbarApi:
 #        try:
         with self._opener as session:
             async with await session.post (api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
-#                pass
-                   
         with self._opener as session:
             async with await session.get (api_device_status, headers=request_headers) as resp:
 
@@ -191,20 +189,21 @@ class SoundbarApi:
 
 class SoundbarApiSwitch:
     @staticmethod
-    def device_update(self):
+    async def async_device_update(self):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
         api_device_status = api_device + "/components/main/capabilities/execute/status"
         api_command = api_device + "/commands"
         api_full = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
-        try:
-            cmdurl = requests.post(api_command, data=api_full, headers=request_headers)
-            time.sleep(0.2)
-            resp = requests.get(api_device_status, headers=request_headers)
+#        try:
+        with self._opener as session:
+            async with await session.post (api_command, data=api_full, headers=request_headers) as resp:
+        with self._opener as session:
+            async with await session.get (api_device_status, headers=request_headers) as resp:
 
-        except requests.exceptions.RequestException as e:
-            return e
+#        except requests.exceptions.RequestException as e:
+#            return e
         try:
             data = resp.json()
             if self._mode == "night_mode":

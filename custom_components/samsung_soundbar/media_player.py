@@ -86,14 +86,15 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
+        self._opener = SoundbarSwitchEntity.get_opener
 
     # Run when added to HASS TO LOAD SOURCES
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-    def update(self):
-        SoundbarApi.device_update(self)
+    async def async_update(self):
+        SoundbarApi.async_device_update(self)
 
     ################################## Commandes ###############################
     ### arg , cmdtype
