@@ -1,6 +1,8 @@
 import json
 import time
 import requests
+import aiohttp
+import asyncio
 from homeassistant.const import (
     STATE_IDLE,
     STATE_OFF,
@@ -37,22 +39,23 @@ CONTROLABLE_SOURCES = ["bluetooth", "wifi"]
 
 
 class SoundbarApi:
-    @staticmethod
-    def device_update(self):
+    
+    async def async_device_update(self):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
         api_device_status = api_device + "/states"
         api_command = api_device + "/commands"
-        try:
-            cmdurl = requests.post(
-                api_command, data=COMMAND_REFRESH, headers=request_headers
-            )
-            time.sleep(0.2)
-            resp = requests.get(api_device_status, headers=request_headers)
+#        try:
+        with self._opener as session:
+            async with await session.post (api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
+#                pass
+                   
+        with self._opener as session:
+            async with await session.get (api_device_status, headers=request_headers) as resp:
 
-        except requests.exceptions.RequestException as e:
+#        except requests.exceptions.RequestException as e:
             #            self._state = STATE_IDLE
-            return e
+#            return e
 
         try:
             data = resp.json()

@@ -1,6 +1,7 @@
 """samsung Soundbar Switchs    """
 import logging
 import asyncio
+import aiohttp
 import voluptuous as vol
 from datetime import timedelta
 
@@ -63,6 +64,8 @@ class SoundbarSwitch  (SwitchEntity):
         self._device_id = SoundbarSwitchEntity.device_id
         self._api_key = SoundbarSwitchEntity.api_key
         self._state = "off"
+        self._opener = SoundbarSwitchEntity.get_opener
+        
 
     # Run when added to HASS TO LOAD SOURCES
     async def async_added_to_hass(self):
@@ -70,7 +73,7 @@ class SoundbarSwitch  (SwitchEntity):
         await super().async_added_to_hass()
 
 
-    def update(self):
+    async def async_update(self):
         SoundbarApiSwitch.device_update(self)
 
     def turn_off(self):

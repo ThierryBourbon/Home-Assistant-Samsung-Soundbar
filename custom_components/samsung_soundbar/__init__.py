@@ -102,6 +102,7 @@ class SoundbarDevice(Entity):
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
+        self._opener = aiohttp.ClientSession()
     
 #    @property
 #    def device_class(self):
@@ -130,6 +131,12 @@ class SoundbarDevice(Entity):
     @property
     def max_volume(self):
         return self._max_volume
+    
+    @property
+    def get_opener(self):
+        """Return the socket of the device."""
+        return self._opener
+
     
     
 
