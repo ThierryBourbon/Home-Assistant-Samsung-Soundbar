@@ -51,6 +51,7 @@ class SoundbarApi:
                 pass
         with self._opener as session:
             async with await session.get (api_device_status, headers=request_headers) as resp:
+                pass
 
 #        except requests.exceptions.RequestException as e:
             #            self._state = STATE_IDLE
@@ -203,6 +204,7 @@ class SoundbarApiSwitch:
    
         with self._opener as session:
             async with await session.get (api_device_status, headers=request_headers) as resp:
+                pass
 
 #        except requests.exceptions.RequestException as e:
 #            return e
