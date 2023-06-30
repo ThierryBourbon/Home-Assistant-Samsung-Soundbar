@@ -49,7 +49,6 @@ class SoundbarApi:
         with self._opener as session:
             async with await session.post (api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
                 pass
-        with self._opener as session:
             async with await session.get (api_device_status, headers=request_headers) as resp:
                 pass
 
@@ -126,8 +125,8 @@ class SoundbarApi:
         except Exception as error:
             return error
 
-    @staticmethod
-    def send_command(self, argument, cmdtype):
+    
+    async def async_send_command(self, argument, cmdtype):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
         api_command = api_device + "/commands"
@@ -137,54 +136,54 @@ class SoundbarApi:
             volume = int(argument * self._max_volume)
             API_COMMAND_ARG = "[{}]}}]}}".format(volume)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            cmdurl = requests.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self.opener.post(api_command, data=API_FULL, headers=request_headers)
         elif cmdtype == "stepvolume":  # steps volume up or down
             if argument == "up":
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeUp'}]}"
-                cmdurl = requests.post(
+                resp = await self.opener.post(
                     api_command, data=API_COMMAND_DATA, headers=request_headers
                 )
             else:
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeDown'}]}"
-                cmdurl = requests.post(
+                resp = await self.opener.post(
                     api_command, data=API_COMMAND_DATA, headers=request_headers
                 )
         elif cmdtype == "audiomute":  # mutes audio
             if self._muted == False:
-                cmdurl = requests.post(
+                resp = await self.opener.post(
                     api_command, data=COMMAND_MUTE, headers=request_headers
                 )
             else:
-                cmdurl = requests.post(
+                resp = await self.opener.post(
                     api_command, data=COMMAND_UNMUTE, headers=request_headers
                 )
         elif cmdtype == "switch_off":  # turns off
-            cmdurl = requests.post(
+            resp = await self.opener.post(
                 api_command, data=COMMAND_POWER_OFF, headers=request_headers
             )
         elif cmdtype == "switch_on":  # turns on
-            cmdurl = requests.post(
+            resp = await self.opener.post(
                 api_command, data=COMMAND_POWER_ON, headers=request_headers
             )
         elif cmdtype == "play":  # play
-            cmdurl = requests.post(
+            resp = await self.opener.post(
                 api_command, data=COMMAND_PLAY, headers=request_headers
             )
         elif cmdtype == "pause":  # pause
-            cmdurl = requests.post(
+            resp = await self.opener.post(
                 api_command, data=COMMAND_PAUSE, headers=request_headers
             )
         elif cmdtype == "selectsource":  # changes source
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'mediaInputSource','command': 'setInputSource', 'arguments': "
             API_COMMAND_ARG = "['{}']}}]}}".format(argument)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            cmdurl = requests.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self.opener.post(api_command, data=API_FULL, headers=request_headers)
         elif cmdtype == "selectsoundmode":  # changes sound mode
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/soundmode',{'x.com.samsung.networkaudio.soundmode':"
             API_COMMAND_ARG = "'{}'".format(argument)
             API_END = "}]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG + API_END
-            cmdurl = requests.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self.opener.post(api_command, data=API_FULL, headers=request_headers)
 
         self.async_schedule_update_ha_state()
 
@@ -201,10 +200,7 @@ class SoundbarApiSwitch:
 #        try:
         
         resp = await self.opener.post (api_command, data=api_full, headers=request_headers)
-   
-        with self._opener as session:
-            async with await session.get (api_device_status, headers=request_headers) as resp:
-                pass
+        resp = await self.opener.get (api_device_status, headers=request_headers)
 
 #        except requests.exceptions.RequestException as e:
 #            return e
