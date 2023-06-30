@@ -102,7 +102,7 @@ class SoundbarDevice(Entity):
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
-        self._opener = aiohttp.ClientSession()
+        self._opener  = aiohttp.ClientSession()
     
 #    @property
 #    def device_class(self):
