@@ -239,7 +239,7 @@ class SoundbarApiSwitch:
             async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
                 status = resp.status
 
-            elif cmdtype == "switch_on":  # turns on self._mode
+        elif cmdtype == "switch_on":  # turns on self._mode
             API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode + ": 1 }]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
 
