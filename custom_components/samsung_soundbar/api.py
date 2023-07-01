@@ -40,7 +40,7 @@ CONTROLABLE_SOURCES = ["bluetooth", "wifi"]
 
 class SoundbarApi:
     
-    async def async_device_update(self):
+    async def async_update(self) -> None:
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
         api_device_status = api_device + "/states"
