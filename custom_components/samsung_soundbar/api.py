@@ -209,11 +209,15 @@ class SoundbarApiSwitch:
         api_full = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
         #        try:
+        async with self._opener.post(api_command, data=api_full, headers=request_headers) as r:
+            resp = await r.read()
+        async with self._opener.get(api_device_status, headers=request_headers) as r:
+            resp = await r.read()
 
-        resp = await self._opener.post(
-            api_command, data=api_full, headers=request_headers
-        )
-        resp = await self._opener.get(api_device_status, headers=request_headers)
+#        resp = await self._opener.post(
+#            api_command, data=api_full, headers=request_headers
+#        )
+#        resp = await self._opener.get(api_device_status, headers=request_headers)
 
         #        except requests.exceptions.RequestException as e:
         #            return e
