@@ -77,10 +77,10 @@ class SoundbarSwitch  (SwitchEntity):
         await SoundbarApiSwitch.async_update(self)
 
     async def async_turn_off(self) -> None:
-        SoundbarApiSwitch.send_command(self, "switch_off")
+        await SoundbarApiSwitch.async_send_command(self, "switch_off")
 
     async def async_turn_on(self) -> None:
-        SoundbarApiSwitch.send_command(self, "switch_on")
+        await SoundbarApiSwitch.async_send_command(self, "switch_on")
 
     @property
     def name(self):
