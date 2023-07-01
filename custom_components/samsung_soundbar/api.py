@@ -46,7 +46,7 @@ class SoundbarApi:
         api_command = api_device + "/commands"
         #        try:
 
-        async with self._opener.post(api_command, data=COMMAND_REFRESH, headers=request_headers) as rresp:
+        async with self._opener.post(api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
             status = resp.status
         async with self._opener.get(api_device_status, headers=request_headers) as resp:
             data = await resp.json()
