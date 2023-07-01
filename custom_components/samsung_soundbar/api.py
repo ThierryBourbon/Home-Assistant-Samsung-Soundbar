@@ -136,54 +136,54 @@ class SoundbarApi:
             volume = int(argument * self._max_volume)
             API_COMMAND_ARG = "[{}]}}]}}".format(volume)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            resp = await self.opener.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self._opener.post(api_command, data=API_FULL, headers=request_headers)
         elif cmdtype == "stepvolume":  # steps volume up or down
             if argument == "up":
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeUp'}]}"
-                resp = await self.opener.post(
+                resp = await self._opener.post(
                     api_command, data=API_COMMAND_DATA, headers=request_headers
                 )
             else:
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeDown'}]}"
-                resp = await self.opener.post(
+                resp = await self._opener.post(
                     api_command, data=API_COMMAND_DATA, headers=request_headers
                 )
         elif cmdtype == "audiomute":  # mutes audio
             if self._muted == False:
-                resp = await self.opener.post(
+                resp = await self._opener.post(
                     api_command, data=COMMAND_MUTE, headers=request_headers
                 )
             else:
-                resp = await self.opener.post(
+                resp = await self._opener.post(
                     api_command, data=COMMAND_UNMUTE, headers=request_headers
                 )
         elif cmdtype == "switch_off":  # turns off
-            resp = await self.opener.post(
+            resp = await self._opener.post(
                 api_command, data=COMMAND_POWER_OFF, headers=request_headers
             )
         elif cmdtype == "switch_on":  # turns on
-            resp = await self.opener.post(
+            resp = await self._opener.post(
                 api_command, data=COMMAND_POWER_ON, headers=request_headers
             )
         elif cmdtype == "play":  # play
-            resp = await self.opener.post(
+            resp = await self._opener.post(
                 api_command, data=COMMAND_PLAY, headers=request_headers
             )
         elif cmdtype == "pause":  # pause
-            resp = await self.opener.post(
+            resp = await self._opener.post(
                 api_command, data=COMMAND_PAUSE, headers=request_headers
             )
         elif cmdtype == "selectsource":  # changes source
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'mediaInputSource','command': 'setInputSource', 'arguments': "
             API_COMMAND_ARG = "['{}']}}]}}".format(argument)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            resp = await self.opener.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self._opener.post(api_command, data=API_FULL, headers=request_headers)
         elif cmdtype == "selectsoundmode":  # changes sound mode
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/soundmode',{'x.com.samsung.networkaudio.soundmode':"
             API_COMMAND_ARG = "'{}'".format(argument)
             API_END = "}]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG + API_END
-            resp = await self.opener.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self._opener.post(api_command, data=API_FULL, headers=request_headers)
 
         self.async_schedule_update_ha_state()
 
@@ -199,8 +199,8 @@ class SoundbarApiSwitch:
 
 #        try:
         
-        resp = await self.opener.post (api_command, data=api_full, headers=request_headers)
-        resp = await self.opener.get (api_device_status, headers=request_headers)
+        resp = await self._opener.post (api_command, data=api_full, headers=request_headers)
+        resp = await self._opener.get (api_device_status, headers=request_headers)
 
 #        except requests.exceptions.RequestException as e:
 #            return e
