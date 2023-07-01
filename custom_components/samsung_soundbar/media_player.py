@@ -77,7 +77,7 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         self._device_id = SoundbarMediaPlayerEntity.device_id
         self._api_key = SoundbarMediaPlayerEntity.api_key
         self._max_volume = SoundbarMediaPlayerEntity.max_volume
-        self._volume = 1
+        self._volume_level = 1
         self._muted = False
         self._playing = True
         self._state = "on"

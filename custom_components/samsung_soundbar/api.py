@@ -80,7 +80,7 @@ class SoundbarApi:
                     self._state = STATE_ON
             else:
                 self._state = STATE_OFF
-            self._volume = device_volume
+            self._volume_level = device_volume
             self._source_list = (
                 device_all_sources
                 if type(device_all_sources) is list
@@ -193,10 +193,10 @@ class SoundbarApi:
 
         self.async_schedule_update_ha_state()
 
-
+################################################################
 class SoundbarApiSwitch:
     @staticmethod
-    async def async_device_update(self):
+    async def async_update(self):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
         api_device_status = api_device + "/components/main/capabilities/execute/status"
@@ -208,11 +208,6 @@ class SoundbarApiSwitch:
             status = resp.status
         async with self._opener.get(api_device_status, headers=request_headers) as resp:
             data = await resp.json()
-
-#        resp = await self._opener.post(
-#            api_command, data=api_full, headers=request_headers
-#        )
-#        resp = await self._opener.get(api_device_status, headers=request_headers)
 
         #        except requests.exceptions.RequestException as e:
         #            return e
@@ -251,7 +246,7 @@ class SoundbarApiSwitch:
             return error
 
     @staticmethod
-    def send_command(self, argument, cmdtype):
+    async def async_send_command(self, cmdtype):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         device_id = self._device_id
         api_device = API_DEVICES + device_id
@@ -262,26 +257,26 @@ class SoundbarApiSwitch:
             if cmdtype == "switch_off":  # turns off nightmode
                 API_COMMAND_ARG = "{'x.com.samsung.networkaudio.nightmode': 0 }]}]}"
                 API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                cmdurl = requests.post(
+                resp = await self._opener.post(
                     api_command, data=API_FULL, headers=request_headers
                 )
             elif cmdtype == "switch_on":  # turns on nightmode
                 API_COMMAND_ARG = "{'x.com.samsung.networkaudio.nightmode': 1 }]}]}"
                 API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                cmdurl = requests.post(
+                resp = await self._opener.post(
                     api_command, data=API_FULL, headers=request_headers
                 )
         elif self._mode == "bass_boost":
             if cmdtype == "switch_off":  # turns off bassboost
                 API_COMMAND_ARG = "{'x.com.samsung.networkaudio.bassboost': 0 }]}]}"
                 API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                cmdurl = requests.post(
+                resp = await self._opener.post(
                     api_command, data=API_FULL, headers=request_headers
                 )
             elif cmdtype == "switch_on":  # turns on bassboost
                 API_COMMAND_ARG = "{'x.com.samsung.networkaudio.bassboost': 1 }]}]}"
                 API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                cmdurl = requests.post(
+                resp = await self._opener.post(
                     api_command, data=API_FULL, headers=request_headers
                 )
         elif self._mode == "voice_amplifier":
@@ -290,7 +285,7 @@ class SoundbarApiSwitch:
                     "{'x.com.samsung.networkaudio.voiceamplifier': 0 }]}]}"
                 )
                 API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                cmdurl = requests.post(
+                resp = await self._opener.post(
                     api_command, data=API_FULL, headers=request_headers
                 )
             elif cmdtype == "switch_on":  # turns on voiceamplifier
@@ -298,7 +293,7 @@ class SoundbarApiSwitch:
                     "{'x.com.samsung.networkaudio.voiceamplifier': 1 }]}]}"
                 )
                 API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                cmdurl = requests.post(
+                resp = await self._opener.post(
                     api_command, data=API_FULL, headers=request_headers
                 )
 
