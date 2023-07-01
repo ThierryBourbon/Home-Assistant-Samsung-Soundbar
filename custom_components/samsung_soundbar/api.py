@@ -239,10 +239,26 @@ class SoundbarApiSwitch:
             async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
                 status = resp.status
 
-        elif cmdtype == "switch_on":  # turns on nightmode
+        elif cmdtype == "switch_on":  # turns on self._mode
             API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode + ": 1 }]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
-                status = resp.status
 
-        self.async_schedule_update_ha_state()
+            await async_execio(self,"post",api_command,API_FULL)
+
+    self.async_schedule_update_ha_state()
+
+async def async_execio(self,method,command,data):
+    request_headers = {"Authorization": "Bearer " + self._api_key}
+    if method == "post":
+        async with self._opener.post(command, data=data, headers=request_headers) as resp:
+            status = resp.status
+            data = await resp.json()
+    else:
+        async with self._opener.get(command, headers=request_headers) as resp:
+            status = resp.status
+            data = await resp.json()
+
+    return data
+
+
+
