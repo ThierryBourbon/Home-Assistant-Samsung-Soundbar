@@ -195,7 +195,7 @@ class SoundbarApi:
 
 ################################################################
 class SoundbarApiSwitch:
-    @staticmethod
+    
     async def async_update(self):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
@@ -245,7 +245,6 @@ class SoundbarApiSwitch:
         except Exception as error:
             return error
 
-    @staticmethod
     async def async_send_command(self, cmdtype):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         device_id = self._device_id
