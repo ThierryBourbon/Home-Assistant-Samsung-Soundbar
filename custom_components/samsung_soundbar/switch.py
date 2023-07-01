@@ -74,7 +74,7 @@ class SoundbarSwitch  (SwitchEntity):
 
 
     async def async_update(self):
-        SoundbarApiSwitch.async_device_update(self)
+        await SoundbarApiSwitch.async_device_update(self)
 
     def turn_off(self):
         arg = ""

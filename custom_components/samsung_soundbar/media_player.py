@@ -94,7 +94,7 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         await super().async_added_to_hass()
 
     async def async_update(self):
-        SoundbarApi.async_device_update(self)
+        await SoundbarApi.async_device_update(self)
 
     ################################## Commandes ###############################
     ### arg , cmdtype
