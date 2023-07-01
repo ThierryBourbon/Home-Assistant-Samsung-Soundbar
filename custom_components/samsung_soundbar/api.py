@@ -47,9 +47,9 @@ class SoundbarApi:
         #        try:
 
         async with self._opener.post(api_command, data=COMMAND_REFRESH, headers=request_headers) as r:
-            resp = await r.read()
+            resp = await r.text()
         async with self._opener.get(api_device_status, headers=request_headers) as r:
-            resp = await r.read()
+            resp = await r.text()
 
 #        resp = await self._opener.post(
 #            api_command, data=COMMAND_REFRESH, headers=request_headers
@@ -210,9 +210,9 @@ class SoundbarApiSwitch:
 
         #        try:
         async with self._opener.post(api_command, data=api_full, headers=request_headers) as r:
-            resp = await r.read()
+            resp = await r.text()
         async with self._opener.get(api_device_status, headers=request_headers) as r:
-            resp = await r.read()
+            resp = await r.text()
 
 #        resp = await self._opener.post(
 #            api_command, data=api_full, headers=request_headers
