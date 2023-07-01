@@ -236,8 +236,9 @@ class SoundbarApiSwitch:
         if cmdtype == "switch_off":  # turns off self._mode
             API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode + "': 0 }]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
-                status = resp.status
+#            async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
+#                status = resp.status
+            await async_execio(self,"post",api_command,API_FULL)
 
         elif cmdtype == "switch_on":  # turns on self._mode
             API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode + ": 1 }]}]}"
