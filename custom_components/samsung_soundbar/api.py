@@ -125,6 +125,7 @@ class SoundbarApi:
         except Exception as error:
             return error
 
+
     
     async def async_send_command(self, argument, cmdtype):
         request_headers = {"Authorization": "Bearer " + self._api_key}
