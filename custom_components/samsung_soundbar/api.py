@@ -39,22 +39,30 @@ CONTROLABLE_SOURCES = ["bluetooth", "wifi"]
 
 
 class SoundbarApi:
-    
     async def async_update(self) -> None:
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
         api_device_status = api_device + "/states"
         api_command = api_device + "/commands"
-#        try:
-        with self._opener as session:
-            async with await session.post (api_command, data=COMMAND_REFRESH, headers=request_headers) as resp:
-                pass
-            async with await session.get (api_device_status, headers=request_headers) as resp:
-                pass
+        #        try:
+#        with self._opener as session:
+#            async with session.post(
+#                api_command, data=COMMAND_REFRESH, headers=request_headers
+#            ) as resp:
+#                pass
+#            async with session.get(api_device_status, headers=request_headers) as resp:
+#                pass
 
-#        except requests.exceptions.RequestException as e:
-            #            self._state = STATE_IDLE
-#            return e
+        resp = await self._opener.post(
+            api_command, data=COMMAND_REFRESH, headers=request_headers
+        )
+        resp = await self._opener.get(api_device_status, headers=request_headers)
+
+
+
+        #        except requests.exceptions.RequestException as e:
+        #            self._state = STATE_IDLE
+        #            return e
 
         try:
             data = resp.json()
@@ -125,8 +133,6 @@ class SoundbarApi:
         except Exception as error:
             return error
 
-
-    
     async def async_send_command(self, argument, cmdtype):
         request_headers = {"Authorization": "Bearer " + self._api_key}
         api_device = API_DEVICES + self._device_id
@@ -137,7 +143,9 @@ class SoundbarApi:
             volume = int(argument * self._max_volume)
             API_COMMAND_ARG = "[{}]}}]}}".format(volume)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            resp = await self._opener.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self._opener.post(
+                api_command, data=API_FULL, headers=request_headers
+            )
         elif cmdtype == "stepvolume":  # steps volume up or down
             if argument == "up":
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeUp'}]}"
@@ -178,13 +186,17 @@ class SoundbarApi:
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'mediaInputSource','command': 'setInputSource', 'arguments': "
             API_COMMAND_ARG = "['{}']}}]}}".format(argument)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            resp = await self._opener.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self._opener.post(
+                api_command, data=API_FULL, headers=request_headers
+            )
         elif cmdtype == "selectsoundmode":  # changes sound mode
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/soundmode',{'x.com.samsung.networkaudio.soundmode':"
             API_COMMAND_ARG = "'{}'".format(argument)
             API_END = "}]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG + API_END
-            resp = await self._opener.post(api_command, data=API_FULL, headers=request_headers)
+            resp = await self._opener.post(
+                api_command, data=API_FULL, headers=request_headers
+            )
 
         self.async_schedule_update_ha_state()
 
@@ -198,13 +210,15 @@ class SoundbarApiSwitch:
         api_command = api_device + "/commands"
         api_full = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
-#        try:
-        
-        resp = await self._opener.post (api_command, data=api_full, headers=request_headers)
-        resp = await self._opener.get (api_device_status, headers=request_headers)
+        #        try:
 
-#        except requests.exceptions.RequestException as e:
-#            return e
+        resp = await self._opener.post(
+            api_command, data=api_full, headers=request_headers
+        )
+        resp = await self._opener.get(api_device_status, headers=request_headers)
+
+        #        except requests.exceptions.RequestException as e:
+        #            return e
         try:
             data = resp.json()
             if self._mode == "night_mode":
