@@ -51,12 +51,6 @@ class SoundbarApi:
         async with self._opener.get(api_device_status, headers=request_headers) as resp:
             data = await resp.json()
 
-#        resp = await self._opener.post(
-#            api_command, data=COMMAND_REFRESH, headers=request_headers
-#        )
-#        resp = await self._opener.get(api_device_status, headers=request_headers)
-
-
 
         #        except requests.exceptions.RequestException as e:
         #            self._state = STATE_IDLE
@@ -109,15 +103,16 @@ class SoundbarApi:
         except:
             return 2
 
-        try:
-            cmdurl = requests.post(api_command, data=API_FULL, headers=request_headers)
-            time.sleep(0.2)
-            resp = requests.get(api_device_status, headers=request_headers)
+#        try:
 
-        except requests.exceptions.RequestException as e:
-            return e
+        async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
+            status = resp.status
+        async with self._opener.get(api_device_status, headers=request_headers) as resp:
+            data = await resp.json()
 
-        data = resp.json()
+#        except requests.exceptions.RequestException as e:
+#            return e
+
 
         try:
             device_soundmode = data["data"]["value"]["payload"][
