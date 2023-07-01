@@ -45,18 +45,18 @@ class SoundbarApi:
         api_device_status = api_device + "/states"
         api_command = api_device + "/commands"
         #        try:
-#        with self._opener as session:
-#            async with session.post(
-#                api_command, data=COMMAND_REFRESH, headers=request_headers
-#            ) as resp:
-#                pass
-#            async with session.get(api_device_status, headers=request_headers) as resp:
-#                pass
+        with self._opener as session:
+            async with session.post(
+                api_command, data=COMMAND_REFRESH, headers=request_headers
+            ) as resp:
+                pass
+            async with session.get(api_device_status, headers=request_headers) as r:
+                resp = await r
 
-        resp = await self._opener.post(
-            api_command, data=COMMAND_REFRESH, headers=request_headers
-        )
-        resp = await self._opener.get(api_device_status, headers=request_headers)
+#        resp = await self._opener.post(
+#            api_command, data=COMMAND_REFRESH, headers=request_headers
+#        )
+#        resp = await self._opener.get(api_device_status, headers=request_headers)
 
 
 
