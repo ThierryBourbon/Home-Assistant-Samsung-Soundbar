@@ -48,7 +48,7 @@ class SoundbarApi:
 
         async with self._opener.post(api_command, data=COMMAND_REFRESH, headers=request_headers) as r:
             resp = await r.read()
-        async with self._opener(api_device_status, headers=request_headers) as r:
+        async with self._opener.get(api_device_status, headers=request_headers) as r:
             resp = await r.read()
 
 #        resp = await self._opener.post(
