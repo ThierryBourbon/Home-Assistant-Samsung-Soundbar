@@ -46,10 +46,10 @@ class SoundbarApi:
         api_command = api_device + "/commands"
         #        try:
 
-        async with self._opener.post(api_command, data=COMMAND_REFRESH, headers=request_headers) as r:
-            resp = await r.text()
-        async with self._opener.get(api_device_status, headers=request_headers) as r:
-            resp = await r.text()
+        async with self._opener.post(api_command, data=COMMAND_REFRESH, headers=request_headers) as rresp:
+            status = await resp.status
+        async with self._opener.get(api_device_status, headers=request_headers) as resp:
+            data = await resp.json()
 
 #        resp = await self._opener.post(
 #            api_command, data=COMMAND_REFRESH, headers=request_headers
@@ -63,7 +63,7 @@ class SoundbarApi:
         #            return e
 
         try:
-            data = resp.json()
+            
             device_volume = data["main"]["volume"]["value"]
             device_volume = min(int(device_volume) / self._max_volume, 1)
             switch_state = data["main"]["switch"]["value"]
@@ -209,10 +209,10 @@ class SoundbarApiSwitch:
         api_full = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
         #        try:
-        async with self._opener.post(api_command, data=api_full, headers=request_headers) as r:
-            resp = await r.text()
-        async with self._opener.get(api_device_status, headers=request_headers) as r:
-            resp = await r.text()
+        async with self._opener.post(api_command, data=api_full, headers=request_headers) as resp:
+            status = await resp.status
+        async with self._opener.get(api_device_status, headers=request_headers) as resp:
+            data = await resp.json()
 
 #        resp = await self._opener.post(
 #            api_command, data=api_full, headers=request_headers
@@ -222,7 +222,6 @@ class SoundbarApiSwitch:
         #        except requests.exceptions.RequestException as e:
         #            return e
         try:
-            data = resp.json()
             if self._mode == "night_mode":
                 if (
                     data["data"]["value"]["payload"][
