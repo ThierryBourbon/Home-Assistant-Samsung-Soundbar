@@ -212,7 +212,7 @@ class SoundbarApiSwitch:
         #        except requests.exceptions.RequestException as e:
         #            return e
         try:
-            if self._mode == "night_mode":
+            if self._mode == "nightmode":
                 if (
                     data["data"]["value"]["payload"][
                         "x.com.samsung.networkaudio.nightmode"
@@ -222,7 +222,7 @@ class SoundbarApiSwitch:
                     self._state = STATE_ON
                 else:
                     self._state = STATE_OFF
-            elif self._mode == "bass_boost":
+            elif self._mode == "bassboost":
                 if (
                     data["data"]["value"]["payload"][
                         "x.com.samsung.networkaudio.bassboost"
@@ -232,7 +232,7 @@ class SoundbarApiSwitch:
                     self._state = STATE_ON
                 else:
                     self._state = STATE_OFF
-            elif self._mode == "voice_amplifier":
+            elif self._mode == "voiceamplifier":
                 if (
                     data["data"]["value"]["payload"][
                         "x.com.samsung.networkaudio.voiceamplifier"
@@ -252,48 +252,17 @@ class SoundbarApiSwitch:
         api_command = api_device + "/commands"
         API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute','arguments': ['/sec/networkaudio/advancedaudio',"
 
-        if self._mode == "night_mode":
-            if cmdtype == "switch_off":  # turns off nightmode
-                API_COMMAND_ARG = "{'x.com.samsung.networkaudio.nightmode': 0 }]}]}"
-                API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                resp = await self._opener.post(
-                    api_command, data=API_FULL, headers=request_headers
-                )
-            elif cmdtype == "switch_on":  # turns on nightmode
-                API_COMMAND_ARG = "{'x.com.samsung.networkaudio.nightmode': 1 }]}]}"
-                API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                resp = await self._opener.post(
-                    api_command, data=API_FULL, headers=request_headers
-                )
-        elif self._mode == "bass_boost":
-            if cmdtype == "switch_off":  # turns off bassboost
-                API_COMMAND_ARG = "{'x.com.samsung.networkaudio.bassboost': 0 }]}]}"
-                API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                resp = await self._opener.post(
-                    api_command, data=API_FULL, headers=request_headers
-                )
-            elif cmdtype == "switch_on":  # turns on bassboost
-                API_COMMAND_ARG = "{'x.com.samsung.networkaudio.bassboost': 1 }]}]}"
-                API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                resp = await self._opener.post(
-                    api_command, data=API_FULL, headers=request_headers
-                )
-        elif self._mode == "voice_amplifier":
-            if cmdtype == "switch_off":  # turns off voiceamplifier
-                API_COMMAND_ARG = (
-                    "{'x.com.samsung.networkaudio.voiceamplifier': 0 }]}]}"
-                )
-                API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                resp = await self._opener.post(
-                    api_command, data=API_FULL, headers=request_headers
-                )
-            elif cmdtype == "switch_on":  # turns on voiceamplifier
-                API_COMMAND_ARG = (
-                    "{'x.com.samsung.networkaudio.voiceamplifier': 1 }]}]}"
-                )
-                API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-                resp = await self._opener.post(
-                    api_command, data=API_FULL, headers=request_headers
-                )
+
+        if cmdtype == "switch_off":  # turns off self._mode
+            API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode+ "': 0 }]}]}"
+            API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
+            async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
+                status = resp.status
+
+        elif cmdtype == "switch_on":  # turns on nightmode
+            API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode+ ": 1 }]}]}"
+            API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
+            async with self._opener.post(api_command, data=API_FULL, headers=request_headers) as resp:
+                status = resp.status
 
         self.async_schedule_update_ha_state()

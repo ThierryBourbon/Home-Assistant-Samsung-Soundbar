@@ -28,7 +28,7 @@ VERSION = "2.1"
 DEPENDENCIES = ["soundbar"]
 
 # DEFAULTS
-MODE_LIST = [ "night_mode", "bass_boost", "voice_amplifier"]
+MODE_LIST = [ "nightmode", "bassboost", "voiceamplifier"]
 
 # GLOBALS
 mode_courant =""
