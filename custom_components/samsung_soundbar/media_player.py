@@ -167,7 +167,7 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
 
     @property
     def volume_level(self):
-        return self._volume
+        return self._volume_level
 
     @property
     def source(self):

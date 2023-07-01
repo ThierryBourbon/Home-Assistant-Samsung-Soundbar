@@ -96,16 +96,16 @@ class SoundbarDevice(Entity):
         self._device_id = device_id
         self._api_key = api_key
         self._max_volume = max_volume
-        self._volume = 1
-        self._muted = False
-        self._playing = True
-        self._state = "on"
-        self._source = ""
-        self._source_list = []
-        self._sound_mode = "standard"
-        self._sound_mode_list = []
-        self._media_title = ""
-        self._opener  = aiohttp.ClientSession()
+#        self._volume = 1
+#        self._muted = False
+#        self._playing = True
+#        self._state = "on"
+#        self._source = ""
+#        self._source_list = []
+#        self._sound_mode = "standard"
+#        self._sound_mode_list = []
+#        self._media_title = ""
+#        self._opener  = aiohttp.ClientSession()
     
 #    @property
 #    def device_class(self):
@@ -127,9 +127,9 @@ class SoundbarDevice(Entity):
     def api_key(self):
         return self._api_key
 
-    @property
-    def media_title(self):
-        return self._media_title
+#    @property
+#    def media_title(self):
+#        return self._media_title
     
     @property
     def max_volume(self):

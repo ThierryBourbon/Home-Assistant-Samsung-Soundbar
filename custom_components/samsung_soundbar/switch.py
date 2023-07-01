@@ -73,7 +73,7 @@ class SoundbarSwitch  (SwitchEntity):
         await super().async_added_to_hass()
 
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         await SoundbarApiSwitch.async_update(self)
 
     async def async_turn_off(self) -> None:
