@@ -93,9 +93,8 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-#    async def async_update(self)-> None:
-#        await 
-    SoundbarApi.async_update(self)
+    async def async_update(self)-> None:
+        await SoundbarApi.async_update(self)
 
     ################################## Commandes ###############################
     ### arg , cmdtype
