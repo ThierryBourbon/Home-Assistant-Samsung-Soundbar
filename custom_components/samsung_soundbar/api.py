@@ -248,7 +248,7 @@ class SoundbarApiSwitch:
 
         self.async_schedule_update_ha_state()
 
-async def async_execio(self,method,command,data):
+async def async_execio(self,method:str,command:str,data:str):
     request_headers = {"Authorization": "Bearer " + self._api_key}
     if method == "post":
         async with self._opener.post(command, data=data, headers=request_headers) as resp:
