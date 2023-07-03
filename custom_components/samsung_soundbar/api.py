@@ -42,8 +42,8 @@ class SoundbarApi:
     async def async_update(self) -> None:
         #        try:
 
-        await async_get_json(self,"post","commands",COMMAND_REFRESH)
-        await async_get_json(self,"get","/states","")
+        data = await async_get_json(self,"post","commands",COMMAND_REFRESH)
+        data = await async_get_json(self,"get","/states","")
 
         #        except requests.exceptions.RequestException as e:
         #            self._state = STATE_IDLE
@@ -96,8 +96,8 @@ class SoundbarApi:
 
 #        try:
 
-        await async_get_json(self,"post","commands",API_FULL)
-        await async_get_json(self,"get","components/main/capabilities/execute/status","")
+        data = await async_get_json(self,"post","commands",API_FULL)
+        data = await async_get_json(self,"get","components/main/capabilities/execute/status","")
 
 #        except requests.exceptions.RequestException as e:
 #            return 
@@ -121,38 +121,38 @@ class SoundbarApi:
             volume = int(argument * self._max_volume)
             API_COMMAND_ARG = "[{}]}}]}}".format(volume)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            await async_get_json(self,"post","commands",API_FULL)
+            data = await async_get_json(self,"post","commands",API_FULL)
         elif cmdtype == "stepvolume":  # steps volume up or down
             if argument == "up":
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeUp'}]}"
-                await async_get_json(self,"post","commands",API_COMMAND_DATA)
+                data = await async_get_json(self,"post","commands",API_COMMAND_DATA)
             else:
                 API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'audioVolume','command': 'volumeDown'}]}"
-                await async_get_json(self,"post","commands",API_COMMAND_DATA)
+                data = await async_get_json(self,"post","commands",API_COMMAND_DATA)
         elif cmdtype == "audiomute":  # mutes audio
             if self._muted == False:
-                await async_get_json(self,"post","commands",COMMAND_MUTE)
+                data = await async_get_json(self,"post","commands",COMMAND_MUTE)
             else:
-                await async_get_json(self,"post","commands",COMMAND_UNMUTE)
+                data = await async_get_json(self,"post","commands",COMMAND_UNMUTE)
         elif cmdtype == "switch_off":  # turns off
-            await async_get_json(self,"post","commands",COMMAND_POWER_OFF)
+            data = await async_get_json(self,"post","commands",COMMAND_POWER_OFF)
         elif cmdtype == "switch_on":  # turns on
-            await async_get_json(self,"post","commands",COMMAND_POWER_ON)
+            data = await async_get_json(self,"post","commands",COMMAND_POWER_ON)
         elif cmdtype == "play":  # play
-            await async_get_json(self,"post","commands",COMMAND_PLAY)
+            data = await async_get_json(self,"post","commands",COMMAND_PLAY)
         elif cmdtype == "pause":  # pause
-            await async_get_json(self,"post","commands",COMMAND_PAUSE)            
+            data = await async_get_json(self,"post","commands",COMMAND_PAUSE)            
         elif cmdtype == "selectsource":  # changes source
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'mediaInputSource','command': 'setInputSource', 'arguments': "
             API_COMMAND_ARG = "['{}']}}]}}".format(argument)
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            await async_get_json(self,"post","commands",API_FULL)
+            data = await async_get_json(self,"post","commands",API_FULL)
         elif cmdtype == "selectsoundmode":  # changes sound mode
             API_COMMAND_DATA = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/soundmode',{'x.com.samsung.networkaudio.soundmode':"
             API_COMMAND_ARG = "'{}'".format(argument)
             API_END = "}]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG + API_END
-            await async_get_json(self,"post","commands",API_FULL)
+            data = await async_get_json(self,"post","commands",API_FULL)
 
         self.async_schedule_update_ha_state()
 
@@ -164,8 +164,8 @@ class SoundbarApiSwitch:
         api_full = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
         #        try:
-        await async_get_json(self,"post","commands",api_full)
-        await async_get_json(self,"get","components/main/capabilities/execute/status","")
+        data = await async_get_json(self,"post","commands",api_full)
+        data = await async_get_json(self,"get","components/main/capabilities/execute/status","")
 
         #        except requests.exceptions.RequestException as e:
         #            return e
@@ -191,13 +191,13 @@ class SoundbarApiSwitch:
         if cmdtype == "switch_off":  # turns off self._mode
             API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode + "': 0 }]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
-            await async_get_json(self,"post",api_command,API_FULL)
+            data = await async_get_json(self,"post",api_command,API_FULL)
 
         elif cmdtype == "switch_on":  # turns on self._mode
             API_COMMAND_ARG = "{'x.com.samsung.networkaudio."+ self._mode + ": 1 }]}]}"
             API_FULL = API_COMMAND_DATA + API_COMMAND_ARG
 
-            await async_get_json(self,"post","commands",API_FULL)
+            data = await async_get_json(self,"post","commands",API_FULL)
 
         self.async_schedule_update_ha_state()
 
