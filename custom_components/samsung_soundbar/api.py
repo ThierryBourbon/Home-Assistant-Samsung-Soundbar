@@ -207,7 +207,7 @@ async def async_get_json(self,method:str,command:str,data:str):
     
 
     if method == "post":
-        async with self._opener.post(command, data=data, headers=request_headers) as resp:
+        async with self._opener.post(full_command, data=data, headers=request_headers) as resp:
             assert resp.status == 200
             return await resp.json()
     else:
