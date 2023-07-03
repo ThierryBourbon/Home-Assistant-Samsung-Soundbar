@@ -154,7 +154,6 @@ class SoundbarApi:
 class SoundbarApiSwitch:
     
     async def async_update(self):
-        request_headers = {"Authorization": "Bearer " + self._api_key}
         data_sent = "{'commands':[{'component': 'main','capability': 'execute','command': 'execute', 'arguments': ['/sec/networkaudio/advancedaudio']}]}"
 
         #        try:
@@ -196,10 +195,10 @@ class SoundbarApiSwitch:
 
         self.async_schedule_update_ha_state()
 
-async def async_get_json(self,method:str,data_sent:str,states:str):
+async def async_get_json(self,method:str,data_sent:str,status:str):
     request_headers = {"Authorization": "Bearer " + self._api_key}
     full_command = API_DEVICES + self._device_id + "/commands"
-    full_status  = API_DEVICES + self._device_id + states
+    full_status  = API_DEVICES + self._device_id + status
     
 
     if method == "post":
@@ -209,6 +208,7 @@ async def async_get_json(self,method:str,data_sent:str,states:str):
     else:
         async with self._opener.post(full_command, data=data_sent, headers=request_headers) as resp:
             assert resp.status == 200
+            a = await resp.json()
         await asyncio.sleep (0.5)
         async with self._opener.get(full_status, headers=request_headers) as resp:
             assert resp.status == 200
