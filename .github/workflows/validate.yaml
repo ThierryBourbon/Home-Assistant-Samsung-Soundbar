@@ -11,7 +11,9 @@ jobs:
   validate-hacs:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: "actions/checkout@v3"
+      - uses: "actions/checkout@v4"
+      - name: Check Python syntax
+        run: python -m compileall -q custom_components/samsung_soundbar
       - name: HACS validation
         uses: "hacs/action@main"
         with:
