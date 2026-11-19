@@ -6,7 +6,8 @@ from datetime import timedelta
 
 # vol.Required(CONF_DEVICE_ID): cv.string,
 
-from .api import SoundbarApi
+from .api import SoundbarApi, SmartThingsError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 # From homeassistant
 from custom_components.samsung_soundbar import _LOGGER, DOMAIN as SOUNDBAR_DOMAIN
@@ -91,44 +92,61 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
+        self._client = SoundbarApi(async_get_clientsession(self.hass), self._api_key, self._device_id, self._max_volume)
 
-    def update(self):
-        SoundbarApi.device_update(self)
+    async def async_update(self):
+        try:
+            data = await self._client.update_media()
+        except (SmartThingsError, KeyError, TypeError, ValueError) as error:
+            _LOGGER.warning("Cannot update Samsung soundbar %s: %s", self._name, error)
+            self._attr_available = False
+            return
+        self._attr_available = True
+        self._state = data["state"]
+        self._volume = data["volume"]
+        self._muted = data["muted"]
+        self._source = data["source"]
+        self._source_list = data["sources"]
+        self._media_title = data["title"]
+        self._sound_mode = data["sound_mode"]
+        self._sound_mode_list = data["sound_modes"]
+
+    async def _send(self, command, argument=None):
+        await self._client.send_media_command(command, argument)
+        self.async_schedule_update_ha_state(True)
 
     ################################## Commandes ###############################
     ### arg , cmdtype
 
-    def turn_off(self):
-        SoundbarApi.send_command(self, "", "switch_off")
+    async def async_turn_off(self):
+        await self._send("switch_off")
 
-    def turn_on(self):
-        SoundbarApi.send_command(self, "", "switch_on")
+    async def async_turn_on(self):
+        await self._send("switch_on")
 
-    def set_volume_level(self, volume_level: float):
-        cmdtype = "setvolume"
-        SoundbarApi.send_command(self, volume_level, cmdtype)
+    async def async_set_volume_level(self, volume_level: float):
+        await self._send("setvolume", volume_level)
 
-    def mute_volume(self, mute: bool):
-        cmdtype = "audiomute"
-        SoundbarApi.send_command(self, mute, cmdtype)
+    async def async_mute_volume(self, mute: bool):
+        await self._send("audiomute", mute)
 
-    def volume_up(self):
-        SoundbarApi.send_command(self, "up", "stepvolume")
+    async def async_volume_up(self):
+        await self._send("stepvolume", "up")
 
-    def volume_down(self):
-        SoundbarApi.send_command(self, "down", "stepvolume")
+    async def async_volume_down(self):
+        await self._send("stepvolume", "down")
 
-    def select_source(self, source: str):
-        SoundbarApi.send_command(self, source, "selectsource")
+    async def async_select_source(self, source: str):
+        await self._send("selectsource", source)
 
-    def select_sound_mode(self, sound_mode: str):
-        SoundbarApi.send_command(self, sound_mode, "selectsoundmode")
+    async def async_select_sound_mode(self, sound_mode: str):
+        await self._send("selectsoundmode", sound_mode)
 
-    def media_play(self):
-        SoundbarApi.send_command(self, "", "play")
+    async def async_media_play(self):
+        await self._send("play")
 
-    def media_pause(self):
-        SoundbarApi.send_command(self, "", "pause")
+    async def async_media_pause(self):
+        await self._send("pause")
 
     ################################## Attributs ###############################
 
