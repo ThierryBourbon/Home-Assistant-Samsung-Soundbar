@@ -26,7 +26,7 @@ from datetime import timedelta
 from .api import SoundbarApi, SmartThingsError
 
 # DEFAULTS
-DEFAULT_NAME = "samsung Soundbar Test"
+DEFAULT_NAME = "Samsung Soundbar"
 CONF_MAX_VOLUME = "max_volume"
 
 soundbar_CONFIG = vol.Schema(
@@ -34,7 +34,7 @@ soundbar_CONFIG = vol.Schema(
         vol.Required(CONF_API_KEY): cv.string,
         vol.Required(CONF_DEVICE_ID): cv.string,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_MAX_VOLUME, default=1): cv.positive_int,
+        vol.Optional(CONF_MAX_VOLUME, default=100): cv.positive_int,
     }
 )
 
@@ -63,7 +63,7 @@ async def async_setup(hass, config):
 
     soundbar_list = []
 
-    configured_devices = config[DOMAIN].get(CONF_DEVICES)
+    configured_devices = config.get(DOMAIN, {}).get(CONF_DEVICES, [])
     for device in configured_devices:
         soundbar = SoundbarDevice(
             device.get(CONF_API_KEY),
@@ -81,7 +81,7 @@ async def async_setup(hass, config):
 
     if not soundbar_list:
         _LOGGER.info("No soundbar devices configured")
-        return False
+        return True
 
     _LOGGER.debug("Configured %s soundbars", len(soundbar_list))
 
@@ -108,6 +108,8 @@ class SoundbarDevice(Entity):
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
+        self.client = None
+        self.coordinator = None
     
 #    @property
 #    def device_class(self):
