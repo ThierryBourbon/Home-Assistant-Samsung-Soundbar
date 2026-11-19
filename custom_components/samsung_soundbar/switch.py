@@ -30,7 +30,7 @@ DEPENDENCIES = ["soundbar"]
 MODE_LIST = [ "night_mode", "bass_boost", "voice_amplifier"]
 
 # GLOBALS
-mode_courant =""
+
 
 # Return cached results if last scan was less then this time ago.
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
@@ -48,18 +48,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         _LOGGER.debug("Configured a new SoundbarSwitch %s", device.name)
         for m in MODE_LIST:
 
-            global mode_courant
-            mode_courant = m
-            devices.append(SoundbarSwitch (device))
+            devices.append(SoundbarSwitch(device, m))
     
     async_add_entities(devices, update_before_add=True)
 
 class SoundbarSwitch  (SwitchEntity):
-    def __init__(self, SoundbarSwitchEntity):
-
-        global mode_courant
-        self._mode = mode_courant
-        self._name = SoundbarSwitchEntity.name + "_" + mode_courant
+    def __init__(self, SoundbarSwitchEntity, mode):
+        self._mode = mode
+        self._name = SoundbarSwitchEntity.name + "_" + mode
         self._device_id = SoundbarSwitchEntity.device_id
         self._api_key = SoundbarSwitchEntity.api_key
         self._state = "off"
@@ -93,5 +89,5 @@ class SoundbarSwitch  (SwitchEntity):
         return self._mode 
     
     @property
-    def state(self):
-        return self._state
+    def is_on(self):
+        return self._state == "on"
