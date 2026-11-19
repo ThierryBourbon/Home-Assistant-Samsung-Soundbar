@@ -5,7 +5,7 @@ import voluptuous as vol
 from datetime import timedelta
 
 from .api import SoundbarApi, SmartThingsError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
 
@@ -51,10 +51,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
             devices.append(SoundbarSwitch(device, m))
     
-    async_add_entities(devices, update_before_add=True)
+    async_add_entities(devices, update_before_add=False)
 
-class SoundbarSwitch  (SwitchEntity):
+class SoundbarSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, SoundbarSwitchEntity, mode):
+        super().__init__(SoundbarSwitchEntity.coordinator)
+        self._client = SoundbarSwitchEntity.client
         self._mode = mode
         self._api_mode = {"night_mode": "nightmode", "bass_boost": "bassboost", "voice_amplifier": "voiceamplifier"}[mode]
         self._name = SoundbarSwitchEntity.name + "_" + mode
@@ -62,29 +64,21 @@ class SoundbarSwitch  (SwitchEntity):
         self._api_key = SoundbarSwitchEntity.api_key
         self._state = "off"
 
-    # Run when added to HASS TO LOAD SOURCES
-    async def async_added_to_hass(self):
-        """Run when entity about to be added."""
-        await super().async_added_to_hass()
-        self._client = SoundbarApi(async_get_clientsession(self.hass), self._api_key, self._device_id, 100)
-
-
-    async def async_update(self):
-        try:
-            data = await self._client.update_advanced()
-            self._state = "on" if data[f"x.com.samsung.networkaudio.{self._api_mode}"] == 1 else "off"
-            self._attr_available = True
-        except (SmartThingsError, KeyError, TypeError, ValueError) as error:
-            _LOGGER.warning("Cannot update Samsung soundbar switch %s: %s", self._name, error)
-            self._attr_available = False
+    def _handle_coordinator_update(self):
+        data = self.coordinator.data
+        if data:
+            advanced = data["advanced"]
+            value = advanced.get(f"x.com.samsung.networkaudio.{self._api_mode}")
+            self._state = "on" if value in (1, True, "1", "on") else "off"
+        super()._handle_coordinator_update()
 
     async def async_turn_off(self, **kwargs):
         await self._client.set_advanced(self._api_mode, False)
-        self.async_schedule_update_ha_state(True)
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs):
         await self._client.set_advanced(self._api_mode, True)
-        self.async_schedule_update_ha_state(True)
+        await self.coordinator.async_request_refresh()
 
     @property
     def name(self):
