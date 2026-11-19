@@ -20,6 +20,10 @@ SUPPORTED_DOMAINS = ['media_player','switch']
 from homeassistant.const import CONF_DEVICES, CONF_NAME, CONF_API_KEY, CONF_DEVICE_ID
 from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from datetime import timedelta
+from .api import SoundbarApi, SmartThingsError
 
 # DEFAULTS
 DEFAULT_NAME = "samsung Soundbar Test"
@@ -69,6 +73,8 @@ async def async_setup(hass, config):
         )
  
         _LOGGER.debug("soundbar device %s configured", device.get(CONF_NAME))
+        soundbar.client = SoundbarApi(async_get_clientsession(hass), soundbar.api_key, soundbar.device_id, soundbar.max_volume)
+        soundbar.coordinator = SoundbarCoordinator(hass, soundbar)
         soundbar_list.append(soundbar)
 
     hass.data[DOMAIN] = soundbar_list
@@ -141,3 +147,23 @@ class SoundbarDevice(Entity):
 
 
                 
+
+class SoundbarCoordinator(DataUpdateCoordinator):
+    """Share a single SmartThings update among all soundbar entities."""
+
+    def __init__(self, hass, soundbar):
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=f"samsung_soundbar_{soundbar.device_id}",
+            update_interval=timedelta(seconds=30),
+        )
+        self.soundbar = soundbar
+
+    async def _async_update_data(self):
+        try:
+            media = await self.soundbar.client.update_media()
+            advanced = await self.soundbar.client.update_advanced()
+            return {"media": media, "advanced": advanced}
+        except (SmartThingsError, KeyError, TypeError, ValueError, ZeroDivisionError) as error:
+            raise UpdateFailed(str(error)) from error
