@@ -77,7 +77,8 @@ class SoundbarApi:
         await self.command("refresh", "refresh")
         await asyncio.sleep(0.2)
         data = (await self._request("GET", "/states"))["main"]
-        value = lambda key: data[key]["value"]
+        def value(key):
+            return data[key]["value"]
         sources = value("supportedInputSources")
         if isinstance(sources, str):
             sources = json.loads(sources)
@@ -97,7 +98,7 @@ class SoundbarApi:
             "volume": min(max(int(value("volume")) / self.max_volume, 0), 1),
             "muted": value("mute") != "unmuted",
             "source": source,
-            "sources": sources,
+            "sources": sources if isinstance(sources, list) else [],
             "title": data.get("trackDescription", {}).get("value")
             if state in (STATE_PLAYING, STATE_PAUSED) else None,
         }
