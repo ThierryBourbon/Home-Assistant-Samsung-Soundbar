@@ -59,7 +59,7 @@ async def async_setup(hass, config):
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = []
 
-    _LOGGER.info("Initializing Samsung Soundbar  devices")
+    _LOGGER.warning("SOUNDBAR DIAG 01: async_setup entered; configured=%s", DOMAIN in config)
 
     soundbar_list = []
 
@@ -83,7 +83,7 @@ async def async_setup(hass, config):
         _LOGGER.info("No soundbar devices configured")
         return True
 
-    _LOGGER.debug("Configured %s soundbars", len(soundbar_list))
+    _LOGGER.warning("SOUNDBAR DIAG 02: configured %s soundbar(s)", len(soundbar_list))
 
     for domain in SUPPORTED_DOMAINS:
         hass.async_create_task(
@@ -163,9 +163,12 @@ class SoundbarCoordinator(DataUpdateCoordinator):
         self.soundbar = soundbar
 
     async def _async_update_data(self):
+        _LOGGER.warning("SOUNDBAR DIAG 03: coordinator polling started")
         try:
             media = await self.soundbar.client.update_media()
+            _LOGGER.warning("SOUNDBAR DIAG 04: media fetched")
             advanced = await self.soundbar.client.update_advanced()
+            _LOGGER.warning("SOUNDBAR DIAG 05: advanced audio fetched")
             return {"media": media, "advanced": advanced}
         except Exception as error:
             _LOGGER.exception("Samsung Soundbar: SmartThings update failed for device %s (%s)", self.soundbar.device_id, type(error).__name__)
