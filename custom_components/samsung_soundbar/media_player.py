@@ -81,20 +81,23 @@ class SoundbarMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         self._sound_mode_list = []
         self._media_title = ""
         self._attr_unique_id = f"{self._device_id}_media_player"
+        if self.coordinator.data:
+            self._apply_media_data(self.coordinator.data["media"])
 
     def _handle_coordinator_update(self):
-        data = self.coordinator.data
-        if data:
-            media = data["media"]
-            self._state = media["state"]
-            self._volume = media["volume"]
-            self._muted = media["muted"]
-            self._source = media["source"]
-            self._source_list = media["sources"]
-            self._media_title = media["title"]
-            self._sound_mode = media["sound_mode"]
-            self._sound_mode_list = media["sound_modes"]
+        if self.coordinator.data:
+            self._apply_media_data(self.coordinator.data["media"])
         super()._handle_coordinator_update()
+
+    def _apply_media_data(self, media):
+        self._state = media["state"]
+        self._volume = media["volume"]
+        self._muted = media["muted"]
+        self._source = media["source"]
+        self._source_list = media["sources"]
+        self._media_title = media["title"]
+        self._sound_mode = media["sound_mode"]
+        self._sound_mode_list = media["sound_modes"]
 
     async def _send(self, command, argument=None):
         await self._client.send_media_command(command, argument)
