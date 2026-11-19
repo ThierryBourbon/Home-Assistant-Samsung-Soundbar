@@ -74,12 +74,13 @@ class SoundbarMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         self._volume = 1
         self._muted = False
         self._playing = True
-        self._state = "on"
+        self._state = "off"
         self._source = ""
         self._source_list = []
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
+        self._attr_unique_id = f"{self._device_id}_media_player"
 
     def _handle_coordinator_update(self):
         data = self.coordinator.data
