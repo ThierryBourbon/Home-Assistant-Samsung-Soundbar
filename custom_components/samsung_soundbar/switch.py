@@ -4,7 +4,8 @@ import asyncio
 import voluptuous as vol
 from datetime import timedelta
 
-from .api import SoundbarApiSwitch
+from .api import SoundbarApi, SmartThingsError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
 
@@ -55,6 +56,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class SoundbarSwitch  (SwitchEntity):
     def __init__(self, SoundbarSwitchEntity, mode):
         self._mode = mode
+        self._api_mode = {"night_mode": "nightmode", "bass_boost": "bassboost", "voice_amplifier": "voiceamplifier"}[mode]
         self._name = SoundbarSwitchEntity.name + "_" + mode
         self._device_id = SoundbarSwitchEntity.device_id
         self._api_key = SoundbarSwitchEntity.api_key
@@ -64,20 +66,25 @@ class SoundbarSwitch  (SwitchEntity):
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
+        self._client = SoundbarApi(async_get_clientsession(self.hass), self._api_key, self._device_id, 100)
 
 
-    def update(self):
-        SoundbarApiSwitch.device_update(self)
+    async def async_update(self):
+        try:
+            data = await self._client.update_advanced()
+            self._state = "on" if data[f"x.com.samsung.networkaudio.{self._api_mode}"] == 1 else "off"
+            self._attr_available = True
+        except (SmartThingsError, KeyError, TypeError, ValueError) as error:
+            _LOGGER.warning("Cannot update Samsung soundbar switch %s: %s", self._name, error)
+            self._attr_available = False
 
-    def turn_off(self):
-        arg = ""
-        cmdtype = "switch_off"
-        SoundbarApiSwitch.send_command(self, arg, cmdtype)
+    async def async_turn_off(self, **kwargs):
+        await self._client.set_advanced(self._api_mode, False)
+        self.async_schedule_update_ha_state(True)
 
-    def turn_on(self):
-        arg = ""
-        cmdtype = "switch_on"
-        SoundbarApiSwitch.send_command(self, arg, cmdtype)
+    async def async_turn_on(self, **kwargs):
+        await self._client.set_advanced(self._api_mode, True)
+        self.async_schedule_update_ha_state(True)
 
     @property
     def name(self):
