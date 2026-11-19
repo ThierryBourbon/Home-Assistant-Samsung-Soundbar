@@ -7,7 +7,7 @@ from datetime import timedelta
 # vol.Required(CONF_DEVICE_ID): cv.string,
 
 from .api import SoundbarApi, SmartThingsError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # From homeassistant
 from custom_components.samsung_soundbar import _LOGGER, DOMAIN as SOUNDBAR_DOMAIN
@@ -54,15 +54,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         devices.append(SoundbarMediaPlayer(device))
 
-    async_add_entities(devices, update_before_add=True)
+    if soundbar_list:
+        await asyncio.gather(*(device.coordinator.async_refresh() for device in soundbar_list))
+    async_add_entities(devices, update_before_add=False)
 
 
 # samsung Soundbar Media Player Devic
 
 
-class SoundbarMediaPlayer(MediaPlayerEntity):
+class SoundbarMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
     def __init__(self, SoundbarMediaPlayerEntity):
         """Initialize the Soundbar device."""
+        super().__init__(SoundbarMediaPlayerEntity.coordinator)
+        self._client = SoundbarMediaPlayerEntity.client
         self._name = SoundbarMediaPlayerEntity.name
         self._device_id = SoundbarMediaPlayerEntity.device_id
         self._api_key = SoundbarMediaPlayerEntity.api_key
@@ -77,32 +81,23 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         self._sound_mode_list = []
         self._media_title = ""
 
-    # Run when added to HASS TO LOAD SOURCES
-    async def async_added_to_hass(self):
-        """Run when entity about to be added."""
-        await super().async_added_to_hass()
-        self._client = SoundbarApi(async_get_clientsession(self.hass), self._api_key, self._device_id, self._max_volume)
-
-    async def async_update(self):
-        try:
-            data = await self._client.update_media()
-        except (SmartThingsError, KeyError, TypeError, ValueError) as error:
-            _LOGGER.warning("Cannot update Samsung soundbar %s: %s", self._name, error)
-            self._attr_available = False
-            return
-        self._attr_available = True
-        self._state = data["state"]
-        self._volume = data["volume"]
-        self._muted = data["muted"]
-        self._source = data["source"]
-        self._source_list = data["sources"]
-        self._media_title = data["title"]
-        self._sound_mode = data["sound_mode"]
-        self._sound_mode_list = data["sound_modes"]
+    def _handle_coordinator_update(self):
+        data = self.coordinator.data
+        if data:
+            media = data["media"]
+            self._state = media["state"]
+            self._volume = media["volume"]
+            self._muted = media["muted"]
+            self._source = media["source"]
+            self._source_list = media["sources"]
+            self._media_title = media["title"]
+            self._sound_mode = media["sound_mode"]
+            self._sound_mode_list = media["sound_modes"]
+        super()._handle_coordinator_update()
 
     async def _send(self, command, argument=None):
         await self._client.send_media_command(command, argument)
-        self.async_schedule_update_ha_state(True)
+        await self.coordinator.async_request_refresh()
 
     ################################## Commandes ###############################
     ### arg , cmdtype
