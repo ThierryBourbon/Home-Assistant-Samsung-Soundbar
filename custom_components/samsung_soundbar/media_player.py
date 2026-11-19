@@ -11,20 +11,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 # From homeassistant
 from custom_components.samsung_soundbar import _LOGGER, DOMAIN as SOUNDBAR_DOMAIN
-from homeassistant.components.media_player.const import (
-    SUPPORT_PAUSE,
-    SUPPORT_PLAY,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_SELECT_SOUND_MODE,
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_STEP,
-    SUPPORT_VOLUME_SET,
-)
 from homeassistant.components.media_player import (
     MediaPlayerEntity,
-    DEVICE_CLASS_SPEAKER,
+    MediaPlayerDeviceClass,
+    MediaPlayerEntityFeature,
 )
 
 import homeassistant.helpers.config_validation as cv
@@ -34,24 +24,23 @@ from homeassistant.util import Throttle
 VERSION = "2.1"
 
 # Dependencies
-DEPENDENCIES = ["soundbar"]
+
 
 # Return cached results if last scan was less then this time ago.
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
 MIN_TIME_BETWEEN_FORCED_SCANS = timedelta(seconds=5)
 
 SUPPORT_samsung_SOUNDBAR = (
-    SUPPORT_PAUSE
-    | SUPPORT_VOLUME_STEP
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_VOLUME_SET
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_SELECT_SOUND_MODE
-    | SUPPORT_TURN_OFF
-    | SUPPORT_TURN_ON
-    | SUPPORT_PLAY
+    MediaPlayerEntityFeature.PAUSE
+    | MediaPlayerEntityFeature.VOLUME_STEP
+    | MediaPlayerEntityFeature.VOLUME_MUTE
+    | MediaPlayerEntityFeature.VOLUME_SET
+    | MediaPlayerEntityFeature.SELECT_SOURCE
+    | MediaPlayerEntityFeature.SELECT_SOUND_MODE
+    | MediaPlayerEntityFeature.TURN_OFF
+    | MediaPlayerEntityFeature.TURN_ON
+    | MediaPlayerEntityFeature.PLAY
 )
-
 
 # SETUP PLATFORM
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -152,7 +141,7 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_SPEAKER
+        return MediaPlayerDeviceClass.SPEAKER
 
     @property
     def supported_features(self):
