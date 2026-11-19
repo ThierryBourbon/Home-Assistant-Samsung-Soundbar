@@ -46,7 +46,7 @@ CONFIG_SCHEMA = vol.Schema({
                         vol.Required(CONF_API_KEY): cv.string,
                         vol.Required(CONF_DEVICE_ID): cv.string,
                         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-                        vol.Optional(CONF_MAX_VOLUME, default=1): cv.positive_int,
+                        vol.Optional(CONF_MAX_VOLUME, default=100): cv.positive_int,
                 }),
             ]),
         })
@@ -167,5 +167,6 @@ class SoundbarCoordinator(DataUpdateCoordinator):
             media = await self.soundbar.client.update_media()
             advanced = await self.soundbar.client.update_advanced()
             return {"media": media, "advanced": advanced}
-        except (SmartThingsError, KeyError, TypeError, ValueError, ZeroDivisionError) as error:
-            raise UpdateFailed(str(error)) from error
+        except Exception as error:
+            _LOGGER.exception("Samsung Soundbar: SmartThings update failed for device %s (%s)", self.soundbar.device_id, type(error).__name__)
+            raise UpdateFailed(f"{type(error).__name__}: {error}") from error
