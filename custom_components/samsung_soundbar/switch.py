@@ -25,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 VERSION = "2.1"
 
 # Dependencies
-DEPENDENCIES = ["soundbar"]
+
 
 # DEFAULTS
 MODE_LIST = [ "night_mode", "bass_boost", "voice_amplifier"]
@@ -63,6 +63,7 @@ class SoundbarSwitch(CoordinatorEntity, SwitchEntity):
         self._device_id = SoundbarSwitchEntity.device_id
         self._api_key = SoundbarSwitchEntity.api_key
         self._state = "off"
+        self._attr_unique_id = f"{self._device_id}_{mode}"
 
     def _handle_coordinator_update(self):
         data = self.coordinator.data
