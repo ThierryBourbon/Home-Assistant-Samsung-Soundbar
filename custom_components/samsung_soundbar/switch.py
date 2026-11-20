@@ -75,17 +75,19 @@ class SoundbarSwitch(CoordinatorEntity, SwitchEntity):
     def _apply_advanced_data(self, advanced):
         value = advanced.get(f"x.com.samsung.networkaudio.{self._api_mode}")
         if value is None:
-            self._state = None
+            return
         else:
             self._state = "on" if value in (1, True, "1", "on") else "off"
 
     async def async_turn_off(self, **kwargs):
         await self._client.set_advanced(self._api_mode, False)
-        await self.coordinator.async_request_refresh()
+        self._state = "off"
+        self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs):
         await self._client.set_advanced(self._api_mode, True)
-        await self.coordinator.async_request_refresh()
+        self._state = "on"
+        self.async_write_ha_state()
 
     @property
     def name(self):
