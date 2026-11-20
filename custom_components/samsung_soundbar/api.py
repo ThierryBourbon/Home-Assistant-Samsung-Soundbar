@@ -61,7 +61,17 @@ class SoundbarApi:
 
     @staticmethod
     def _payload(data):
-        return data["data"]["value"]["payload"]
+        """Return optional Samsung execute payload; some devices return null."""
+        if not isinstance(data, dict):
+            return {}
+        wrapper = data.get("data")
+        if not isinstance(wrapper, dict):
+            return {}
+        value = wrapper.get("value")
+        if not isinstance(value, dict):
+            return {}
+        payload = value.get("payload")
+        return payload if isinstance(payload, dict) else {}
 
     async def _execute_payload(self, path):
         # Serialize execute/status pairs: SmartThings exposes one shared status.
@@ -102,13 +112,21 @@ class SoundbarApi:
             "title": data.get("trackDescription", {}).get("value")
             if state in (STATE_PLAYING, STATE_PAUSED) else None,
         }
-        modes = await self._execute_payload("/sec/networkaudio/soundmode")
+        try:
+            modes = await self._execute_payload("/sec/networkaudio/soundmode")
+        except SmartThingsError as error:
+            _LOGGER.warning("Samsung sound modes unavailable: %s", error)
+            modes = {}
         result["sound_mode"] = modes.get("x.com.samsung.networkaudio.soundmode")
         result["sound_modes"] = modes.get("x.com.samsung.networkaudio.supportedSoundmode", [])
         return result
 
     async def update_advanced(self):
-        return await self._execute_payload("/sec/networkaudio/advancedaudio")
+        try:
+            return await self._execute_payload("/sec/networkaudio/advancedaudio")
+        except SmartThingsError as error:
+            _LOGGER.warning("Samsung advanced audio unavailable: %s", error)
+            return {}
 
     async def set_advanced(self, key: str, enabled: bool):
         await self.execute(
