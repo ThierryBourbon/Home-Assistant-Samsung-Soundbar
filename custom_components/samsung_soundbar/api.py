@@ -2,6 +2,7 @@
 import asyncio
 import json
 import logging
+import time
 
 from aiohttp import ClientError, ClientSession, ClientTimeout
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_PAUSED, STATE_PLAYING
@@ -25,6 +26,10 @@ class SoundbarApi:
         self.device_id = device_id
         self.max_volume = max_volume
         self._command_lock = asyncio.Lock()
+        self._last_advanced_poll = 0.0
+        self._advanced_cache = {}
+        self._last_modes_poll = 0.0
+        self._modes_cache = {}
 
     async def _request(self, method: str, path: str, payload=None):
         url = f"{BASE_URL}/{self.device_id}{path}"
@@ -112,27 +117,36 @@ class SoundbarApi:
             "title": data.get("trackDescription", {}).get("value")
             if state in (STATE_PLAYING, STATE_PAUSED) else None,
         }
-        try:
-            modes = await self._execute_payload("/sec/networkaudio/soundmode")
-        except SmartThingsError as error:
-            _LOGGER.warning("Samsung sound modes unavailable: %s", error)
-            modes = {}
+        if time.monotonic() - self._last_modes_poll >= 300:
+            self._last_modes_poll = time.monotonic()
+            try:
+                fetched = await self._execute_payload("/sec/networkaudio/soundmode")
+                if fetched:
+                    self._modes_cache = fetched
+            except SmartThingsError as error:
+                _LOGGER.warning("Samsung sound modes unavailable: %s", error)
+        modes = self._modes_cache
         result["sound_mode"] = modes.get("x.com.samsung.networkaudio.soundmode")
         result["sound_modes"] = modes.get("x.com.samsung.networkaudio.supportedSoundmode", [])
         return result
 
     async def update_advanced(self):
-        try:
-            return await self._execute_payload("/sec/networkaudio/advancedaudio")
-        except SmartThingsError as error:
-            _LOGGER.warning("Samsung advanced audio unavailable: %s", error)
-            return {}
+        if time.monotonic() - self._last_advanced_poll >= 300:
+            self._last_advanced_poll = time.monotonic()
+            try:
+                fetched = await self._execute_payload("/sec/networkaudio/advancedaudio")
+                if fetched:
+                    self._advanced_cache = fetched
+            except SmartThingsError as error:
+                _LOGGER.warning("Samsung advanced audio unavailable: %s", error)
+        return self._advanced_cache
 
     async def set_advanced(self, key: str, enabled: bool):
         await self.execute(
             "/sec/networkaudio/advancedaudio",
             {f"x.com.samsung.networkaudio.{key}": int(enabled)},
         )
+        self._last_advanced_poll = 0.0
 
     async def send_media_command(self, cmdtype: str, argument=None):
         if cmdtype == "setvolume":
