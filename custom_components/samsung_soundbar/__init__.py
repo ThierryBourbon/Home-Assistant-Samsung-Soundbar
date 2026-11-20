@@ -158,7 +158,7 @@ class SoundbarCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=f"samsung_soundbar_{soundbar.device_id}",
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=120),
         )
         self.soundbar = soundbar
 
