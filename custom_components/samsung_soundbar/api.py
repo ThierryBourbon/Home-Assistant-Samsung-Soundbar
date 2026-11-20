@@ -74,8 +74,8 @@ class SoundbarApi:
             return self._payload(await self.execute_status())
 
     async def update_media(self):
-        await self.command("refresh", "refresh")
-        await asyncio.sleep(0.2)
+        # Read the current device state directly. A refresh command may be forbidden
+        # for a PAT even when the device state endpoint is accessible.
         data = (await self._request("GET", "/states"))["main"]
         def value(key):
             return data[key]["value"]
