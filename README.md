@@ -22,6 +22,15 @@
 
 
 
+> **Development branch (2.2.0-beta.1): not yet validated on physical hardware.**
+> This branch replaces blocking SmartThings HTTP calls with asynchronous requests and
+> shares one polling coordinator between the media player and the three switches.
+> Do not install it over a working setup without first backing up
+> `custom_components/samsung_soundbar` and your Home Assistant configuration.
+> The existing `samsung_soundbar: devices:` YAML configuration remains supported.
+> The integration requires network access to `api.smartthings.com` and a valid SmartThings token.
+> It is not a local LAN integration; its functionality depends on the Samsung cloud API.
+
 # samsung Soundbar
 
 Adds support for samsung enabled Soundbar

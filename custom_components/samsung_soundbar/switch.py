@@ -4,7 +4,8 @@ import asyncio
 import voluptuous as vol
 from datetime import timedelta
 
-from .api import SoundbarApiSwitch
+from .api import SoundbarApi, SmartThingsError
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
 
@@ -24,13 +25,13 @@ _LOGGER = logging.getLogger(__name__)
 VERSION = "2.1"
 
 # Dependencies
-DEPENDENCIES = ["soundbar"]
+
 
 # DEFAULTS
 MODE_LIST = [ "night_mode", "bass_boost", "voice_amplifier"]
 
 # GLOBALS
-mode_courant =""
+
 
 # Return cached results if last scan was less then this time ago.
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
@@ -48,40 +49,45 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         _LOGGER.debug("Configured a new SoundbarSwitch %s", device.name)
         for m in MODE_LIST:
 
-            global mode_courant
-            mode_courant = m
-            devices.append(SoundbarSwitch (device))
+            devices.append(SoundbarSwitch(device, m))
     
-    async_add_entities(devices, update_before_add=True)
+    async_add_entities(devices, update_before_add=False)
 
-class SoundbarSwitch  (SwitchEntity):
-    def __init__(self, SoundbarSwitchEntity):
-
-        global mode_courant
-        self._mode = mode_courant
-        self._name = SoundbarSwitchEntity.name + "_" + mode_courant
+class SoundbarSwitch(CoordinatorEntity, SwitchEntity):
+    def __init__(self, SoundbarSwitchEntity, mode):
+        super().__init__(SoundbarSwitchEntity.coordinator)
+        self._client = SoundbarSwitchEntity.client
+        self._mode = mode
+        self._api_mode = {"night_mode": "nightmode", "bass_boost": "bassboost", "voice_amplifier": "voiceamplifier"}[mode]
+        self._name = SoundbarSwitchEntity.name + "_" + mode
         self._device_id = SoundbarSwitchEntity.device_id
         self._api_key = SoundbarSwitchEntity.api_key
+        self._state = None
+        self._attr_unique_id = f"{self._device_id}_{mode}"
+        if self.coordinator.data:
+            self._apply_advanced_data(self.coordinator.data["advanced"])
+
+    def _handle_coordinator_update(self):
+        if self.coordinator.data:
+            self._apply_advanced_data(self.coordinator.data["advanced"])
+        super()._handle_coordinator_update()
+
+    def _apply_advanced_data(self, advanced):
+        value = advanced.get(f"x.com.samsung.networkaudio.{self._api_mode}")
+        if value is None:
+            return
+        else:
+            self._state = "on" if value in (1, True, "1", "on") else "off"
+
+    async def async_turn_off(self, **kwargs):
+        await self._client.set_advanced(self._api_mode, False)
         self._state = "off"
+        self.async_write_ha_state()
 
-    # Run when added to HASS TO LOAD SOURCES
-    async def async_added_to_hass(self):
-        """Run when entity about to be added."""
-        await super().async_added_to_hass()
-
-
-    def update(self):
-        SoundbarApiSwitch.device_update(self)
-
-    def turn_off(self):
-        arg = ""
-        cmdtype = "switch_off"
-        SoundbarApiSwitch.send_command(self, arg, cmdtype)
-
-    def turn_on(self):
-        arg = ""
-        cmdtype = "switch_on"
-        SoundbarApiSwitch.send_command(self, arg, cmdtype)
+    async def async_turn_on(self, **kwargs):
+        await self._client.set_advanced(self._api_mode, True)
+        self._state = "on"
+        self.async_write_ha_state()
 
     @property
     def name(self):
@@ -93,5 +99,9 @@ class SoundbarSwitch  (SwitchEntity):
         return self._mode 
     
     @property
-    def state(self):
-        return self._state
+    def available(self):
+        return super().available and self._state is not None
+
+    @property
+    def is_on(self):
+        return self._state == "on"

@@ -6,24 +6,15 @@ from datetime import timedelta
 
 # vol.Required(CONF_DEVICE_ID): cv.string,
 
-from .api import SoundbarApi
+from .api import SoundbarApi, SmartThingsError
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # From homeassistant
 from custom_components.samsung_soundbar import _LOGGER, DOMAIN as SOUNDBAR_DOMAIN
-from homeassistant.components.media_player.const import (
-    SUPPORT_PAUSE,
-    SUPPORT_PLAY,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_SELECT_SOUND_MODE,
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_STEP,
-    SUPPORT_VOLUME_SET,
-)
 from homeassistant.components.media_player import (
     MediaPlayerEntity,
-    DEVICE_CLASS_SPEAKER,
+    MediaPlayerDeviceClass,
+    MediaPlayerEntityFeature,
 )
 
 import homeassistant.helpers.config_validation as cv
@@ -33,24 +24,23 @@ from homeassistant.util import Throttle
 VERSION = "2.1"
 
 # Dependencies
-DEPENDENCIES = ["soundbar"]
+
 
 # Return cached results if last scan was less then this time ago.
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=10)
 MIN_TIME_BETWEEN_FORCED_SCANS = timedelta(seconds=5)
 
 SUPPORT_samsung_SOUNDBAR = (
-    SUPPORT_PAUSE
-    | SUPPORT_VOLUME_STEP
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_VOLUME_SET
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_SELECT_SOUND_MODE
-    | SUPPORT_TURN_OFF
-    | SUPPORT_TURN_ON
-    | SUPPORT_PLAY
+    MediaPlayerEntityFeature.PAUSE
+    | MediaPlayerEntityFeature.VOLUME_STEP
+    | MediaPlayerEntityFeature.VOLUME_MUTE
+    | MediaPlayerEntityFeature.VOLUME_SET
+    | MediaPlayerEntityFeature.SELECT_SOURCE
+    | MediaPlayerEntityFeature.SELECT_SOUND_MODE
+    | MediaPlayerEntityFeature.TURN_OFF
+    | MediaPlayerEntityFeature.TURN_ON
+    | MediaPlayerEntityFeature.PLAY
 )
-
 
 # SETUP PLATFORM
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -64,15 +54,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         devices.append(SoundbarMediaPlayer(device))
 
-    async_add_entities(devices, update_before_add=True)
+    if soundbar_list:
+        await asyncio.gather(*(device.coordinator.async_refresh() for device in soundbar_list))
+    async_add_entities(devices, update_before_add=False)
 
 
 # samsung Soundbar Media Player Devic
 
 
-class SoundbarMediaPlayer(MediaPlayerEntity):
+class SoundbarMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
     def __init__(self, SoundbarMediaPlayerEntity):
         """Initialize the Soundbar device."""
+        super().__init__(SoundbarMediaPlayerEntity.coordinator)
+        self._client = SoundbarMediaPlayerEntity.client
         self._name = SoundbarMediaPlayerEntity.name
         self._device_id = SoundbarMediaPlayerEntity.device_id
         self._api_key = SoundbarMediaPlayerEntity.api_key
@@ -80,61 +74,73 @@ class SoundbarMediaPlayer(MediaPlayerEntity):
         self._volume = 1
         self._muted = False
         self._playing = True
-        self._state = "on"
+        self._state = "off"
         self._source = ""
         self._source_list = []
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
+        self._attr_unique_id = f"{self._device_id}_media_player"
+        if self.coordinator.data:
+            self._apply_media_data(self.coordinator.data["media"])
 
-    # Run when added to HASS TO LOAD SOURCES
-    async def async_added_to_hass(self):
-        """Run when entity about to be added."""
-        await super().async_added_to_hass()
+    def _handle_coordinator_update(self):
+        if self.coordinator.data:
+            self._apply_media_data(self.coordinator.data["media"])
+        super()._handle_coordinator_update()
 
-    def update(self):
-        SoundbarApi.device_update(self)
+    def _apply_media_data(self, media):
+        self._state = media["state"]
+        self._volume = media["volume"]
+        self._muted = media["muted"]
+        self._source = media["source"]
+        self._source_list = media["sources"]
+        self._media_title = media["title"]
+        self._sound_mode = media["sound_mode"]
+        self._sound_mode_list = media["sound_modes"]
+
+    async def _send(self, command, argument=None):
+        await self._client.send_media_command(command, argument)
+        await self.coordinator.async_request_refresh()
 
     ################################## Commandes ###############################
     ### arg , cmdtype
 
-    def turn_off(self):
-        SoundbarApi.send_command(self, "", "switch_off")
+    async def async_turn_off(self):
+        await self._send("switch_off")
 
-    def turn_on(self):
-        SoundbarApi.send_command(self, "", "switch_on")
+    async def async_turn_on(self):
+        await self._send("switch_on")
 
-    def set_volume_level(self, volume_level: float):
-        cmdtype = "setvolume"
-        SoundbarApi.send_command(self, volume_level, cmdtype)
+    async def async_set_volume_level(self, volume_level: float):
+        await self._send("setvolume", volume_level)
 
-    def mute_volume(self, mute: bool):
-        cmdtype = "audiomute"
-        SoundbarApi.send_command(self, mute, cmdtype)
+    async def async_mute_volume(self, mute: bool):
+        await self._send("audiomute", mute)
 
-    def volume_up(self):
-        SoundbarApi.send_command(self, "up", "stepvolume")
+    async def async_volume_up(self):
+        await self._send("stepvolume", "up")
 
-    def volume_down(self):
-        SoundbarApi.send_command(self, "down", "stepvolume")
+    async def async_volume_down(self):
+        await self._send("stepvolume", "down")
 
-    def select_source(self, source: str):
-        SoundbarApi.send_command(self, source, "selectsource")
+    async def async_select_source(self, source: str):
+        await self._send("selectsource", source)
 
-    def select_sound_mode(self, sound_mode: str):
-        SoundbarApi.send_command(self, sound_mode, "selectsoundmode")
+    async def async_select_sound_mode(self, sound_mode: str):
+        await self._send("selectsoundmode", sound_mode)
 
-    def media_play(self):
-        SoundbarApi.send_command(self, "", "play")
+    async def async_media_play(self):
+        await self._send("play")
 
-    def media_pause(self):
-        SoundbarApi.send_command(self, "", "pause")
+    async def async_media_pause(self):
+        await self._send("pause")
 
     ################################## Attributs ###############################
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_SPEAKER
+        return MediaPlayerDeviceClass.SPEAKER
 
     @property
     def supported_features(self):

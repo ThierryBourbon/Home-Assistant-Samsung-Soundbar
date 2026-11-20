@@ -20,9 +20,13 @@ SUPPORTED_DOMAINS = ['media_player','switch']
 from homeassistant.const import CONF_DEVICES, CONF_NAME, CONF_API_KEY, CONF_DEVICE_ID
 from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from datetime import timedelta
+from .api import SoundbarApi, SmartThingsError
 
 # DEFAULTS
-DEFAULT_NAME = "samsung Soundbar Test"
+DEFAULT_NAME = "Samsung Soundbar"
 CONF_MAX_VOLUME = "max_volume"
 
 soundbar_CONFIG = vol.Schema(
@@ -30,7 +34,7 @@ soundbar_CONFIG = vol.Schema(
         vol.Required(CONF_API_KEY): cv.string,
         vol.Required(CONF_DEVICE_ID): cv.string,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_MAX_VOLUME, default=1): cv.positive_int,
+        vol.Optional(CONF_MAX_VOLUME, default=100): cv.positive_int,
     }
 )
 
@@ -42,7 +46,7 @@ CONFIG_SCHEMA = vol.Schema({
                         vol.Required(CONF_API_KEY): cv.string,
                         vol.Required(CONF_DEVICE_ID): cv.string,
                         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-                        vol.Optional(CONF_MAX_VOLUME, default=1): cv.positive_int,
+                        vol.Optional(CONF_MAX_VOLUME, default=100): cv.positive_int,
                 }),
             ]),
         })
@@ -55,11 +59,11 @@ async def async_setup(hass, config):
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = []
 
-    _LOGGER.info("Initializing Samsung Soundbar  devices")
+    _LOGGER.warning("SOUNDBAR DIAG 01: async_setup entered; configured=%s", DOMAIN in config)
 
     soundbar_list = []
 
-    configured_devices = config[DOMAIN].get(CONF_DEVICES)
+    configured_devices = config.get(DOMAIN, {}).get(CONF_DEVICES, [])
     for device in configured_devices:
         soundbar = SoundbarDevice(
             device.get(CONF_API_KEY),
@@ -69,15 +73,17 @@ async def async_setup(hass, config):
         )
  
         _LOGGER.debug("soundbar device %s configured", device.get(CONF_NAME))
+        soundbar.client = SoundbarApi(async_get_clientsession(hass), soundbar.api_key, soundbar.device_id, soundbar.max_volume)
+        soundbar.coordinator = SoundbarCoordinator(hass, soundbar)
         soundbar_list.append(soundbar)
 
     hass.data[DOMAIN] = soundbar_list
 
     if not soundbar_list:
         _LOGGER.info("No soundbar devices configured")
-        return False
+        return True
 
-    _LOGGER.debug("Configured %s soundbars", len(soundbar_list))
+    _LOGGER.warning("SOUNDBAR DIAG 02: configured %s soundbar(s)", len(soundbar_list))
 
     for domain in SUPPORTED_DOMAINS:
         hass.async_create_task(
@@ -102,6 +108,8 @@ class SoundbarDevice(Entity):
         self._sound_mode = "standard"
         self._sound_mode_list = []
         self._media_title = ""
+        self.client = None
+        self.coordinator = None
     
 #    @property
 #    def device_class(self):
@@ -141,3 +149,27 @@ class SoundbarDevice(Entity):
 
 
                 
+
+class SoundbarCoordinator(DataUpdateCoordinator):
+    """Share a single SmartThings update among all soundbar entities."""
+
+    def __init__(self, hass, soundbar):
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=f"samsung_soundbar_{soundbar.device_id}",
+            update_interval=timedelta(seconds=120),
+        )
+        self.soundbar = soundbar
+
+    async def _async_update_data(self):
+        _LOGGER.warning("SOUNDBAR DIAG 03: coordinator polling started")
+        try:
+            media = await self.soundbar.client.update_media()
+            _LOGGER.warning("SOUNDBAR DIAG 04: media fetched")
+            advanced = await self.soundbar.client.update_advanced()
+            _LOGGER.warning("SOUNDBAR DIAG 05: advanced audio fetched")
+            return {"media": media, "advanced": advanced}
+        except Exception as error:
+            _LOGGER.exception("Samsung Soundbar: SmartThings update failed for device %s (%s)", self.soundbar.device_id, type(error).__name__)
+            raise UpdateFailed(f"{type(error).__name__}: {error}") from error
