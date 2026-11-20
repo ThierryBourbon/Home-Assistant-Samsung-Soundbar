@@ -27,6 +27,7 @@ class SoundbarApi:
         self.max_volume = max_volume
         self._command_lock = asyncio.Lock()
         self._last_advanced_poll = 0.0
+        self._advanced_pending = set()
         self._advanced_cache = {}
         self._last_modes_poll = 0.0
         self._modes_cache = {}
@@ -136,7 +137,9 @@ class SoundbarApi:
             try:
                 fetched = await self._execute_payload("/sec/networkaudio/advancedaudio")
                 if fetched:
-                    self._advanced_cache = fetched
+                    for key, value in fetched.items():
+                        if key not in self._advanced_pending:
+                            self._advanced_cache[key] = value
             except SmartThingsError as error:
                 _LOGGER.warning("Samsung advanced audio unavailable: %s", error)
         return self._advanced_cache
@@ -146,7 +149,11 @@ class SoundbarApi:
             "/sec/networkaudio/advancedaudio",
             {f"x.com.samsung.networkaudio.{key}": int(enabled)},
         )
-        self._last_advanced_poll = 0.0
+        field = f"x.com.samsung.networkaudio.{key}"
+        self._advanced_cache[field] = int(enabled)
+        self._advanced_pending.add(field)
+        # Preserve the command-confirmed state; do not immediately trigger
+        # another execute/status round trip, which can return null or 429.
 
     async def send_media_command(self, cmdtype: str, argument=None):
         if cmdtype == "setvolume":
